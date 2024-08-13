@@ -77,24 +77,32 @@ fn setup_terrain_assets(
 ) {
     let material_handle_1 = materials.add(Color::srgb(0.1, 0.7, 0.1));
     let material_handle_2 = materials.add(Color::srgb(0.7, 0.2, 0.2));
+    let material_grass = materials.add(StandardMaterial {
+        // base_color: Srgba::hex("#6dbe4b").unwrap().into(),
+        base_color: Color::srgb(0.5, 0.5, 0.5),
+        metallic: 1.0,
+        perceptual_roughness: 0.0,
+        reflectance: 1.0,
+        ..default()
+    });
 
-    let mut mesh = Plane3d::default().mesh().size(16., 16.).build();
+    // let mut mesh = Plane3d::default().mesh().size(16., 16.).build();
 
-    if let Some(VertexAttributeValues::Float32x3(positions)) =
-        mesh.attribute(Mesh::ATTRIBUTE_POSITION)
-    {
-        let colors: Vec<[f32; 4]> = positions
-            .iter()
-            .map(|[r, g, b]| [(1. - *r) / 2., (1. - *g) / 2., (1. - *b) / 2., 1.])
-            .collect();
-        mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-    }
+    // if let Some(VertexAttributeValues::Float32x3(positions)) =
+    //     mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+    // {
+    //     let colors: Vec<[f32; 4]> = positions
+    //         .iter()
+    //         .map(|[r, g, b]| [(1. - *r) / 2., (1. - *g) / 2., (1. - *b) / 2., 1.])
+    //         .collect();
+    //     // mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+    // }
 
-    let mesh_handle = meshes.add(mesh);
+    // let mesh_handle = meshes.add(mesh);
 
     let enviro_asset_handles = TerrainAssetHandles {
-        terrain_material_hdls: HashMap::from([("mat_1".into(), material_handle_1), ("mat_2".into(), material_handle_2)]),
-        terrain_mesh_hdls: HashMap::from([("chunk_plane".into(), mesh_handle)]),
+        terrain_material_hdls: HashMap::from([("mat_1".into(), material_handle_1), ("mat_2".into(), material_handle_2), ("grass".into(), material_grass)]),
+        terrain_mesh_hdls: HashMap::from([/*("chunk_plane".into(), mesh_handle)*/]),
         height_map_data_hdls: HashMap::new(),
         height_map_material_hdls: HashMap::new()
     };
@@ -293,286 +301,17 @@ fn generate_noise(chunk_tricoord: &TriCoord<i16>) -> NoiseMap {
 //     });
 // }
 
-
-const vertex_assignments_even: [u16; 768] = [
-    0,1,17,   1,18,17,   
-    1,2,18,   2,19,18,   
-    2,3,19,   3,20,19,   
-    3,4,20,   4,21,20,   
-    4,5,21,   5,22,21,   
-    5,6,22,   6,23,22,   
-    6,7,23,   7,24,23,   
-    7,8,24,   8,25,24,   
-    8,9,25,   9,26,25,   
-    9,10,26,   10,27,26,   
-    10,11,27,   11,28,27,   
-    11,12,28,   12,29,28,   
-    12,13,29,   13,30,29,   
-    13,14,30,   14,31,30,   
-    14,15,31,   15,32,31,   
-    15,16,32,   17,18,33,   
-    18,34,33,   18,19,34,   
-    19,35,34,   19,20,35,   
-    20,36,35,   20,21,36,   
-    21,37,36,   21,22,37,   
-    22,38,37,   22,23,38,   
-    23,39,38,   23,24,39,   
-    24,40,39,   24,25,40,   
-    25,41,40,   25,26,41,   
-    26,42,41,   26,27,42,   
-    27,43,42,   27,28,43,   
-    28,44,43,   28,29,44,   
-    29,45,44,   29,30,45,   
-    30,46,45,   30,31,46,   
-    31,47,46,   31,32,47,   
-    33,34,48,   34,49,48,   
-    34,35,49,   35,50,49,   
-    35,36,50,   36,51,50,   
-    36,37,51,   37,52,51,   
-    37,38,52,   38,53,52,   
-    38,39,53,   39,54,53,   
-    39,40,54,   40,55,54,   
-    40,41,55,   41,56,55,   
-    41,42,56,   42,57,56,   
-    42,43,57,   43,58,57,   
-    43,44,58,   44,59,58,   
-    44,45,59,   45,60,59,   
-    45,46,60,   46,61,60,   
-    46,47,61,   48,49,62,   
-    49,63,62,   49,50,63,   
-    50,64,63,   50,51,64,   
-    51,65,64,   51,52,65,   
-    52,66,65,   52,53,66,   
-    53,67,66,   53,54,67,   
-    54,68,67,   54,55,68,   
-    55,69,68,   55,56,69,   
-    56,70,69,   56,57,70,   
-    57,71,70,   57,58,71,   
-    58,72,71,   58,59,72,   
-    59,73,72,   59,60,73,   
-    60,74,73,   60,61,74,   
-    62,63,75,   63,76,75,   
-    63,64,76,   64,77,76,   
-    64,65,77,   65,78,77,   
-    65,66,78,   66,79,78,   
-    66,67,79,   67,80,79,   
-    67,68,80,   68,81,80,   
-    68,69,81,   69,82,81,   
-    69,70,82,   70,83,82,   
-    70,71,83,   71,84,83,   
-    71,72,84,   72,85,84,   
-    72,73,85,   73,86,85,   
-    73,74,86,   75,76,87,   
-    76,88,87,   76,77,88,   
-    77,89,88,   77,78,89,   
-    78,90,89,   78,79,90,   
-    79,91,90,   79,80,91,   
-    80,92,91,   80,81,92,   
-    81,93,92,   81,82,93,   
-    82,94,93,   82,83,94,   
-    83,95,94,   83,84,95,   
-    84,96,95,   84,85,96,   
-    85,97,96,   85,86,97,   
-    87,88,98,   88,99,98,   
-    88,89,99,   89,100,99,   
-    89,90,100,   90,101,100,   
-    90,91,101,   91,102,101,   
-    91,92,102,   92,103,102,   
-    92,93,103,   93,104,103,   
-    93,94,104,   94,105,104,   
-    94,95,105,   95,106,105,   
-    95,96,106,   96,107,106,   
-    96,97,107,   98,99,108,   
-    99,109,108,   99,100,109,   
-    100,110,109,   100,101,110,   
-    101,111,110,   101,102,111,   
-    102,112,111,   102,103,112,   
-    103,113,112,   103,104,113,   
-    104,114,113,   104,105,114,   
-    105,115,114,   105,106,115,   
-    106,116,115,   106,107,116,   
-    108,109,117,   109,118,117,   
-    109,110,118,   110,119,118,   
-    110,111,119,   111,120,119,   
-    111,112,120,   112,121,120,   
-    112,113,121,   113,122,121,   
-    113,114,122,   114,123,122,   
-    114,115,123,   115,124,123,   
-    115,116,124,   117,118,125,   
-    118,126,125,   118,119,126,   
-    119,127,126,   119,120,127,   
-    120,128,127,   120,121,128,   
-    121,129,128,   121,122,129,   
-    122,130,129,   122,123,130,   
-    123,131,130,   123,124,131,   
-    125,126,132,   126,133,132,   
-    126,127,133,   127,134,133,   
-    127,128,134,   128,135,134,   
-    128,129,135,   129,136,135,   
-    129,130,136,   130,137,136,   
-    130,131,137,   132,133,138,   
-    133,139,138,   133,134,139,   
-    134,140,139,   134,135,140,   
-    135,141,140,   135,136,141,   
-    136,142,141,   136,137,142,   
-    138,139,143,   139,144,143,   
-    139,140,144,   140,145,144,   
-    140,141,145,   141,146,145,   
-    141,142,146,   143,144,147,   
-    144,148,147,   144,145,148,   
-    145,149,148,   145,146,149,   
-    147,148,150,   148,151,150,   
-    148,149,151,   150,151,152,   
-    ];
-
-const vertex_assignments_odd: [u16; 768] = [
-    0,17,1,   1,17,18,   
-    1,18,2,   2,18,19,   
-    2,19,3,   3,19,20,   
-    3,20,4,   4,20,21,   
-    4,21,5,   5,21,22,   
-    5,22,6,   6,22,23,   
-    6,23,7,   7,23,24,   
-    7,24,8,   8,24,25,   
-    8,25,9,   9,25,26,   
-    9,26,10,   10,26,27,   
-    10,27,11,   11,27,28,   
-    11,28,12,   12,28,29,   
-    12,29,13,   13,29,30,   
-    13,30,14,   14,30,31,   
-    14,31,15,   15,31,32,   
-    15,32,16,   17,33,18,   
-    18,33,34,   18,34,19,   
-    19,34,35,   19,35,20,   
-    20,35,36,   20,36,21,   
-    21,36,37,   21,37,22,   
-    22,37,38,   22,38,23,   
-    23,38,39,   23,39,24,   
-    24,39,40,   24,40,25,   
-    25,40,41,   25,41,26,   
-    26,41,42,   26,42,27,   
-    27,42,43,   27,43,28,   
-    28,43,44,   28,44,29,   
-    29,44,45,   29,45,30,   
-    30,45,46,   30,46,31,   
-    31,46,47,   31,47,32,   
-    33,48,34,   34,48,49,   
-    34,49,35,   35,49,50,   
-    35,50,36,   36,50,51,   
-    36,51,37,   37,51,52,   
-    37,52,38,   38,52,53,   
-    38,53,39,   39,53,54,   
-    39,54,40,   40,54,55,   
-    40,55,41,   41,55,56,   
-    41,56,42,   42,56,57,   
-    42,57,43,   43,57,58,   
-    43,58,44,   44,58,59,   
-    44,59,45,   45,59,60,   
-    45,60,46,   46,60,61,   
-    46,61,47,   48,62,49,   
-    49,62,63,   49,63,50,   
-    50,63,64,   50,64,51,   
-    51,64,65,   51,65,52,   
-    52,65,66,   52,66,53,   
-    53,66,67,   53,67,54,   
-    54,67,68,   54,68,55,   
-    55,68,69,   55,69,56,   
-    56,69,70,   56,70,57,   
-    57,70,71,   57,71,58,   
-    58,71,72,   58,72,59,   
-    59,72,73,   59,73,60,   
-    60,73,74,   60,74,61,   
-    62,75,63,   63,75,76,   
-    63,76,64,   64,76,77,   
-    64,77,65,   65,77,78,   
-    65,78,66,   66,78,79,   
-    66,79,67,   67,79,80,   
-    67,80,68,   68,80,81,   
-    68,81,69,   69,81,82,   
-    69,82,70,   70,82,83,   
-    70,83,71,   71,83,84,   
-    71,84,72,   72,84,85,   
-    72,85,73,   73,85,86,   
-    73,86,74,   75,87,76,   
-    76,87,88,   76,88,77,   
-    77,88,89,   77,89,78,   
-    78,89,90,   78,90,79,   
-    79,90,91,   79,91,80,   
-    80,91,92,   80,92,81,   
-    81,92,93,   81,93,82,   
-    82,93,94,   82,94,83,   
-    83,94,95,   83,95,84,   
-    84,95,96,   84,96,85,   
-    85,96,97,   85,97,86,   
-    87,98,88,   88,98,99,   
-    88,99,89,   89,99,100,   
-    89,100,90,   90,100,101,   
-    90,101,91,   91,101,102,   
-    91,102,92,   92,102,103,   
-    92,103,93,   93,103,104,   
-    93,104,94,   94,104,105,   
-    94,105,95,   95,105,106,   
-    95,106,96,   96,106,107,   
-    96,107,97,   98,108,99,   
-    99,108,109,   99,109,100,   
-    100,109,110,   100,110,101,   
-    101,110,111,   101,111,102,   
-    102,111,112,   102,112,103,   
-    103,112,113,   103,113,104,   
-    104,113,114,   104,114,105,   
-    105,114,115,   105,115,106,   
-    106,115,116,   106,116,107,   
-    108,117,109,   109,117,118,   
-    109,118,110,   110,118,119,   
-    110,119,111,   111,119,120,   
-    111,120,112,   112,120,121,   
-    112,121,113,   113,121,122,   
-    113,122,114,   114,122,123,   
-    114,123,115,   115,123,124,   
-    115,124,116,   117,125,118,   
-    118,125,126,   118,126,119,   
-    119,126,127,   119,127,120,   
-    120,127,128,   120,128,121,   
-    121,128,129,   121,129,122,   
-    122,129,130,   122,130,123,   
-    123,130,131,   123,131,124,   
-    125,132,126,   126,132,133,   
-    126,133,127,   127,133,134,   
-    127,134,128,   128,134,135,   
-    128,135,129,   129,135,136,   
-    129,136,130,   130,136,137,   
-    130,137,131,   132,138,133,   
-    133,138,139,   133,139,134,   
-    134,139,140,   134,140,135,   
-    135,140,141,   135,141,136,   
-    136,141,142,   136,142,137,   
-    138,143,139,   139,143,144,   
-    139,144,140,   140,144,145,   
-    140,145,141,   141,145,146,   
-    141,146,142,   143,147,144,   
-    144,147,148,   144,148,145,   
-    145,148,149,   145,149,146,   
-    147,150,148,   148,150,151,   
-    148,151,149,   150,152,151,   
-    ];
-
 // make the res mut. add the height map data so it can create the mesh
 fn generate_mesh(
     chunk_tricoord: &TriCoord<i16>,
     noise_map: &NoiseMap
 ) -> Mesh {
     let odd:bool = chunk_tricoord.a + chunk_tricoord.b + chunk_tricoord.c != 0;
-    let vertices = generate_vertices(noise_map, odd);
-    let mut normals = Vec::with_capacity(triangular_number_o1(CHUNK_SIDE as i16 + 1) as usize);
-    for i in 0..normals.capacity() {
-        normals.push([0.0, 1.0, 0.0]);
-    }
-    let assignments = if odd {
-        vertex_assignments_odd.to_vec()
-    } else {
-        // even
-        vertex_assignments_even.to_vec()
-    };
+    let vertices = generate_vertices_3s(noise_map, odd); // 768/3 = 256
+
+    let normals = generate_normals_from_trimesh(&vertices, odd);
+
+    let assignments = generate_assignments(odd);
 
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD)
     .with_inserted_attribute(
@@ -585,65 +324,221 @@ fn generate_mesh(
     )
     .with_inserted_indices(Indices::U16(assignments));
 
+    // r min max = -7, 9
+    // g min max = -1.2, 4
+    // b min max = -6, 8
+    let min = 0.0;
+
+    let clamp_min = |value: f32, min| {
+        if value < min {
+            min
+        } else {
+            value
+        }
+    };
+
     if let Some(VertexAttributeValues::Float32x3(positions)) =
         mesh.attribute(Mesh::ATTRIBUTE_POSITION)
     {
         let colors: Vec<[f32; 4]> = positions
             .iter()
-            .map(|[r, g, b]| [(1. - *r) , (1. - *g) , (1. - *b) , 1.])
+            .map(|[x, y, z]| {
+                // [(1. - *r).abs(), (1. - *g).abs(), (1. - *b).abs(), 1.]
+                let mut r = clamp_min(1. - *z, min);
+                let mut g = clamp_min((1. - *x), min);
+                let mut b = clamp_min(1. + *x, min);
+                // if r + g + b > 20.0 {
+                //     g = 15.0;
+                // }
+                println!("rgb: {} {} {}", r, g, b);
+                [r, g, b, 1.]
+                // [5.0, 5.0, 0.0, 1.]
+            } )
             .collect();
+
         mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
     }
     
     return mesh; 
 }
 
+const HEIGHT_AMPLIFIER:f32 = 5.0;
+fn generate_vertices_3s(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
+    let mut v:Vec<Vec3> = Vec::with_capacity(triangular_number_o1(CHUNK_SIDE) as usize * 3);
 
-const HEIGHT_AMPLIFIER:f64 = 5.0;
-fn generate_vertices(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
-    let mut height_grid:[[f64;33]; 33] = [[0.0; 33]; 33]; // row, col. dont confuse with x,y coordinates
-    //println!("\n height grid");
+    // convert 1-dimensional noise_map into a grid
+    let mut noise_grid:[[f64;33]; 33] = [[0.0; 33]; 33]; // row v, col ->. dont confuse with x,y coordinates
     for (index, value) in noise_map.iter().enumerate() {
-        height_grid[index / 33][index % 33] = *value;
-        //println!("{} {} = {}", index2 / 33, index2 % 33, *value);
+        noise_grid[index / 33][index % 33] = *value;
     }
 
-    let mut v: Vec<Vec3> = Vec::with_capacity(triangular_number_o1(CHUNK_SIDE as i16) as usize);
+    //let test_x = 1;
+    //let test_y = 30;
+    //let print_test = |y:usize, x:usize, s:String| { println!("{} noise[{}][{}]: {}", s, y, x, (noise_grid[y][x] * HEIGHT_AMPLIFIER as f64)); };
+    // print_test(test_y, test_x, String::from("TEST"));
 
-    let origin_offset_x = CHUNK_SIDE as f64/2.0 * TRI_SIDE as f64;
-    let origin_offset_y = -CHUNK_SIDE as f64/2.0 * TRI_ALTITUDE as f64;
-    //println!("origin_x_z: {} {}", origin_offset_x, origin_offset_y);
+    // origin offsets, so the mesh origin is in the correct center (where ALTITUDE on the z-axis and SIDE on the x-axis crosses, so not the geometric center)
+    let origin_offset_x = CHUNK_HALFSIDE * TRI_SIDE as f64;
+    // let origin_offset_z = -CHUNK_HALFSIDE * TRI_ALTITUDE as f64;
 
-    for row_index in 0..(CHUNK_SIDE as i16 + 1) {
-        
-        let x_offset = row_index as f64 * (TRI_SIDE/2.0) as f64;
+    let (z_alt, z_halfalt, z_noise_augmenter, z_noise_start, origin_offset_z) = if !odd {
+        // even chunk
+        (-TRI_ALTITUDE,
+        -TRI_HALF_ALT,
+        -2,
+        32,
+        -CHUNK_HALFSIDE * TRI_ALTITUDE as f64)
+    } else {
+        // odd chunk
+        (TRI_ALTITUDE,
+        TRI_HALF_ALT,
+        2,
+        0,
+        CHUNK_HALFSIDE * TRI_ALTITUDE as f64)
+    };
 
-        let col_index_max = CHUNK_SIDE as i16 - row_index;
-        let mut noise_map_x_start = row_index;
-        for col_index in 0..col_index_max + 1 {
-            let x = (x_offset + col_index as f64 * TRI_SIDE as f64) - origin_offset_x;
-            
-            let z = if odd {
-                (row_index as f64 * TRI_ALTITUDE as f64) + origin_offset_y
-            } else {
-                // even
-                (row_index as f64 * -TRI_ALTITUDE as f64) - origin_offset_y
+    // loop through each row of triangles in a chunk
+    for row_index in 0..CHUNK_SIDE { // CHUNK_SIDE
+        let x_row_offset = row_index as f32 * TRI_HALFSIDE + TRI_HALFSIDE;
+
+        // loop through each individual triangle (including odd triangles) in a row
+        let col_max = ((CHUNK_SIDE - (row_index + 1)) * 2) + 1;
+        for col_index in 0..col_max {
+            let z_col_offset = (row_index as f32 * z_alt) + z_alt/2.0;
+            // x_offset and z_offset now point to the centre of each trianglet
+
+            let x_base = -origin_offset_x as f32 + x_row_offset + col_index as f32 * TRI_HALFSIDE;
+            let z_base = -origin_offset_z as f32 + z_col_offset;
+
+            // x and z noise_base point to the left vertex of each trianglet pixel in the noise_map
+            let x_noise_base = row_index + col_index;
+            let z_noise_base = z_noise_start + z_noise_augmenter * row_index;
+
+            // println!("");
+
+            let mut print_and_push = |vec3| { 
+                // println!("{:?}",vec3); 
+                //println!("z_col_offset: {}", z_col_offset);
+                v.push(vec3); 
             };
 
-            let noise_max = 32;
+            //println!("z_base: {}", z_base);
 
-            let y = if odd {
-                height_grid[(row_index*2) as usize][(noise_map_x_start+col_index*2) as usize]
+            // println!("  x_z_noise_base: {}, {}", x_noise_base, z_noise_base);
+
+            if col_index % 2 == 0 {
+                // even trianglet
+                
+                // print_test( z_noise_base as usize, x_noise_base as usize, String::from("EVEN LEFT"));
+
+                // left vertex
+                print_and_push(Vec3 {
+                    x:x_base - TRI_HALFSIDE, 
+                    y:HEIGHT_AMPLIFIER * noise_grid[z_noise_base as usize][x_noise_base as usize] as f32, 
+                    z:z_base - z_halfalt
+                });
+
+                // right vertex
+                print_and_push(Vec3 {
+                    x:x_base + TRI_HALFSIDE, 
+                    y:HEIGHT_AMPLIFIER * noise_grid[z_noise_base as usize][(x_noise_base + 2) as usize] as f32, 
+                    z:z_base - z_halfalt
+                });
+
+                // print_test( (z_noise_base + z_noise_augmenter) as usize, (x_noise_base + 1) as usize, String::from("EVEN ALTI"));
+
+                // altitude vertex
+                print_and_push(Vec3 {
+                    x:x_base, 
+                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base + z_noise_augmenter) as usize][(x_noise_base + 1) as usize] as f32, 
+                    z:z_base + z_halfalt
+                });
             } else {
-                // even
-                height_grid[(noise_max-row_index*2) as usize][(noise_map_x_start+col_index*2) as usize]
-            } * HEIGHT_AMPLIFIER;
-            v.push( Vec3 {x:x as f32, y:y as f32, z:z as f32} );
+                // odd trianglet
+
+                // print_test( (z_noise_base) as usize, (x_noise_base + 1) as usize, String::from("ODD  ALTI"));
+
+                // altitude vertex
+                print_and_push(Vec3 {
+                    x:x_base, 
+                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base) as usize][(x_noise_base + 1) as usize] as f32, 
+                    z:z_base - z_halfalt
+                });
+                // right vertex
+                print_and_push(Vec3 {
+                    x:x_base + TRI_HALFSIDE, 
+                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base + z_noise_augmenter) as usize][(x_noise_base + 2) as usize] as f32, 
+                    z:z_base + z_halfalt
+                });
+
+                // print_test( (z_noise_base + z_noise_augmenter) as usize, x_noise_base as usize, String::from("ODD  LEFT"));
+
+                // left vertex
+                print_and_push(Vec3 {
+                    x:x_base - TRI_HALFSIDE, 
+                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base + z_noise_augmenter) as usize][x_noise_base as usize] as f32, 
+                    z:z_base + z_halfalt
+                });
+            }
         }
     }
+
     return v;
 }
 
+// takes in a flat array of vertices that are triangles and creates a flat array of normals for each vertex in flat shading
+fn generate_normals_from_trimesh(vertices: &Vec<Vec3>, odd:bool) -> Vec<Vec3> {
+    let mut v:Vec<Vec3> = Vec::with_capacity(vertices.len());
+
+    if !odd {
+        // even
+        for index in 0..vertices.len()/3 {
+            v.push(calculate_normal(vertices[index*3], vertices[index*3+1], vertices[index*3+2]));
+            v.push(calculate_normal(vertices[index*3], vertices[index*3+1], vertices[index*3+2]));
+            v.push(calculate_normal(vertices[index*3], vertices[index*3+1], vertices[index*3+2]));
+        }
+    } else {
+        // odd
+        for index in 0..vertices.len()/3 {
+            v.push(calculate_normal(vertices[index*3+1], vertices[index*3], vertices[index*3+2]));
+            v.push(calculate_normal(vertices[index*3+1], vertices[index*3], vertices[index*3+2]));
+            v.push(calculate_normal(vertices[index*3+1], vertices[index*3], vertices[index*3+2]));
+        }
+    }
+
+
+    return v;
+}
+
+fn calculate_normal(v0: Vec3, v1: Vec3, v2: Vec3) -> Vec3 {
+    let edge1 = v1 - v0;
+    let edge2 = v2 - v0;
+
+    let normal = edge1.cross(edge2);
+
+    normal.normalize()
+}
+
+fn generate_assignments(odd: bool) -> Vec<u16> {
+    let size = (CHUNK_SIDE.pow(2) * 3) as usize;
+    let mut v: Vec<u16> = Vec::with_capacity(size);
+    if !odd {
+        // even chunk
+        for index in 0..(size) {
+            v.push(index as u16);
+        }
+    } else {
+        // odd chunk
+        for index in 0..size/3 {
+            v.push((index * 3 + 1) as u16);
+            v.push((index * 3) as u16);
+            v.push((index * 3 + 2) as u16);
+        }
+    }
+
+
+    return v;
+}
 
 fn spawn_entities(
     chunk_coord: &Coord<f64>, 
@@ -668,7 +563,7 @@ fn spawn_entities(
     commands.spawn((
         PbrBundle {
             mesh: terrain_mesh.clone(),
-            material: materials.add(Color::srgb(1., 1., 1.)) ,
+            material: environ_assets.terrain_material_hdls["grass"].clone(), // materials.add(Color::srgb(1., 1., 1.)) ,
             transform: chunk_transform,
             ..default()
         },

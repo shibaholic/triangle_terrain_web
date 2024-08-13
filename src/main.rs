@@ -56,7 +56,9 @@ fn main() {
 }
 
 fn setup(
-    mut commands: Commands, mut window: Query<&mut Window>
+    mut commands: Commands, 
+    mut window: Query<&mut Window>, 
+    asset_server: Res<AssetServer>
 ) {
     let mut window = window.single_mut();
     window.title = String::from("FPS_2");
@@ -107,8 +109,17 @@ fn setup(
                 fov: TAU / 5.0,
                 ..default()
             }),
-            exposure: Exposure::SUNLIGHT,
+            camera: Camera {
+                hdr: true,
+                ..default()
+            },
+
             ..default()
+        },
+        EnvironmentMapLight {
+            diffuse_map: asset_server.load("environment_maps/pisa_diffuse_rgb9e5_zstd.ktx2"),
+            specular_map: asset_server.load("environment_maps/pisa_specular_rgb9e5_zstd.ktx2"),
+            intensity: 2000.0,
         },
         RenderPlayer { logical_entity }
     ))

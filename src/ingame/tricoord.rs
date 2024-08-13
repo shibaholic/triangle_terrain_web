@@ -17,12 +17,13 @@ impl<T: Eq> Eq for TriCoord<T> {
 }
 
 pub const TRI_SIDE:f32 = 1.0;
+pub const TRI_HALFSIDE:f32 = TRI_SIDE/2.0;
 pub const TRI_ALTITUDE:f32 = 0.866025404;
 pub const TRI_HALF_ALT:f32 = 0.433012702;
 pub const TRI_APOTHEM:f32 = 0.288675135;
 
-pub const CHUNK_SIDE:f64 = 16.0;
-pub const CHUNK_HALFSIDE:f64 = CHUNK_SIDE/2.0;
+pub const CHUNK_SIDE:i16 = 16;
+pub const CHUNK_HALFSIDE:f64 = (CHUNK_SIDE/2) as f64;
 pub const CHUNK_ALTITUDE:f64 = 13.856406461;
 pub const CHUNK_HALFALT:f64 = 6.92820323;
 pub const CHUNK_APOTHEM:f64 = 4.618802154;
@@ -45,7 +46,7 @@ pub fn trichunk_to_coord(tricoord: TriCoord<i16>, mode: u8) -> Coord<f64> {
 
     // go to a == 0
     //println!("step 1");
-    zx_coord.x += -temp.a as f64 * CHUNK_SIDE;
+    zx_coord.x += -temp.a as f64 * CHUNK_SIDE as f64;
     //println!("  x is now = {:.02}", zx_coord.x);
     temp.c = temp.c + temp.a;
     temp.a = 0;
@@ -60,7 +61,7 @@ pub fn trichunk_to_coord(tricoord: TriCoord<i16>, mode: u8) -> Coord<f64> {
     //zx_coord.z += s2_z_value;
     //println!("  z change was {}, z is now = {}", s2_z_value, zx_coord.z);
 
-    let s2_x_value = CHUNK_SIDE/2.0 * c_b_sum as f64;
+    let s2_x_value = CHUNK_HALFSIDE * c_b_sum as f64;
     zx_coord.x += s2_x_value;
     //println!("  x change was {}, x is now = {}", s2_x_value, zx_coord.x);
 
@@ -74,7 +75,7 @@ pub fn trichunk_to_coord(tricoord: TriCoord<i16>, mode: u8) -> Coord<f64> {
     let s3_z_value = temp.b as f64 * CHUNK_ALTITUDE;
     zx_coord.z += s3_z_value;
     //println!("  z change was {}, z is now = {}", s3_z_value, zx_coord.z);
-    let s3_x_value = -temp.b as f64 * CHUNK_SIDE/2.0;
+    let s3_x_value = -temp.b as f64 * CHUNK_HALFSIDE;
     zx_coord.x += s3_x_value;
     //println!("  x change was {}, x is now = {}", s3_x_value, zx_coord.x);
     
