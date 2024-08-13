@@ -22,6 +22,7 @@ opt-level = "s"
 lto = true
 codegen-units = 1
 strip = true
+# rustflags = ["--cfg=web_sys_unstable_apis"]
 
 # Profile for distribution
 [profile.dist]
@@ -77,7 +78,7 @@ webbrowser = { version = "1", features = ["hardened"] }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 
 bevy-inspector-egui = "0.25.1"
-bevy_egui = "0.28"
+bevy_egui = { version = "0.28", default-features = true, features = ["manage_clipboard"] }
 bevy_rapier3d = "0.27.0"
 bevy_fps_controller = "0.3.0"
 noise = { version = "0.9.0"}

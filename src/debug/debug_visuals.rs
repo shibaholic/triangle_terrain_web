@@ -30,7 +30,8 @@ impl Plugin for DebugVisualsPlugin {
                 },
             },
         },)
-
+        .add_systems(PostStartup, spawn_help_text)
+        .add_systems(Update, update_help_text)
         ;
     }
 }
@@ -46,3 +47,57 @@ impl Plugin for DebugVisualsPlugin {
 //         }),
 //     );
 // }
+
+#[derive(Resource)]
+struct HelpTextBool(bool);
+
+#[derive(Component)]
+struct HelpText;
+
+fn spawn_help_text(mut commands: Commands) {
+    commands.spawn((
+        TextBundle::from_section(
+            "",
+            TextStyle::default(),
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            top: Val::Px(36.0),
+            left: Val::Px(12.0),
+            ..default()
+        }),
+        HelpText
+    )
+    );
+    commands.insert_resource::<HelpTextBool>( HelpTextBool { 0: false });
+}
+
+fn update_help_text(
+    mut helptext: Query<&mut Text, With<HelpText>>,
+    mut helptextbool: ResMut<HelpTextBool>,
+    keys: Res<ButtonInput<KeyCode>>
+) {
+    let mut text = helptext.single_mut();
+    let text = &mut text.sections[0].value;
+
+    text.clear();
+
+    text.push_str("Press H for help");
+
+    if keys.just_pressed(KeyCode::KeyH) {
+        helptextbool.0 = !helptextbool.0;
+    }
+
+    if helptextbool.0 {
+        text.push_str(
+            "\n (WASD) to walk
+            \n (space) to jump
+            \n (C) to crouch
+            \n (shift) to run
+            \n (U) to open debug panels
+            \n (F) to toggle fly
+            \n (Q) to descend while flying
+            \n (E) to ascend while flying
+        ");
+    }
+}

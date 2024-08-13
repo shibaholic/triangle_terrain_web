@@ -91,6 +91,7 @@ fn setup(
         },
         FpsController {
             air_acceleration: 80.0,
+            key_crouch: KeyCode::KeyC,
             ..default()
         },
     ))

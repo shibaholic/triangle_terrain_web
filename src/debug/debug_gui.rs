@@ -220,7 +220,7 @@ fn toggle_ui(ui: &mut egui::Ui, on: &mut bool) -> egui::Response {
 }
 
 fn debug_inputs(key: Res<ButtonInput<KeyCode>>, mut debug_panels: ResMut<DebugPanelConfig>) {
-    if key.just_pressed(KeyCode::F3) {
+    if key.just_pressed(KeyCode::KeyU) {
         debug_panels.hidden = !debug_panels.hidden;
     }
 }
