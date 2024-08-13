@@ -134,6 +134,7 @@ fn manage_cursor(
 ) {
     for mut window in &mut window_query {
         if key.just_pressed(KeyCode::Escape) {
+            mouse_locked_local.locked = false;
             window.cursor.grab_mode = CursorGrabMode::None;
             window.cursor.visible = true;
             for mut controller in &mut controller_query {

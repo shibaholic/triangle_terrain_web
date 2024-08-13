@@ -1,5 +1,5 @@
 use bevy::{ecs::{query, system::SystemState}, pbr::wireframe::{Wireframe, WireframeConfig}, prelude::*, scene::ron::value::Float, window::PrimaryWindow};
-use bevy_egui::{egui::{self, FontId, RichText}, EguiContext, EguiContexts, EguiPlugin};
+use bevy_egui::{egui::{self, panel, FontId, RichText}, EguiContext, EguiContexts, EguiPlugin};
 use bevy_fps_controller::controller::LogicalPlayer;
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
@@ -15,6 +15,7 @@ pub struct DebugGUIPlugin;
 #[reflect(Resource, InspectorOptions)]
 struct DebugPanelConfig {
     left_width: f32,
+    left_open: bool,
     right_width: f32,
     hidden: bool,
 }
@@ -23,8 +24,9 @@ impl Default for DebugPanelConfig {
     fn default() -> Self {
         DebugPanelConfig { 
             left_width: 100.0,
+            left_open: false,
             right_width: 100.0, 
-            hidden: false, 
+            hidden: true, 
         } 
     }
 }
@@ -60,12 +62,18 @@ impl Plugin for DebugGUIPlugin {
         .init_resource::<DebugToolsData>()
         .register_type::<DebugToolsData>()
 
-        .add_systems(Update, left_panel)  // bevy_inspector
+        .add_systems(Update, left_panel.run_if(left_panel_open))  // bevy_inspector
         .add_systems(Update, right_panel) // debug tools
         .add_systems(Update, debug_inputs)
         .add_systems(Update, update_tools_data)
         ;
     }
+}
+
+fn left_panel_open(
+    panel_config: Res<DebugPanelConfig>
+) -> bool {
+    panel_config.left_open
 }
 
 fn left_panel(
@@ -175,7 +183,12 @@ fn right_panel(
 
 
             ui.separator();
-            ui.heading("Visuals");
+            ui.heading("Inspector panel");
+
+            ui.horizontal(|ui| {
+                ui.label("Toggle inspector panel");
+                ui.add(toggle(&mut panel_config.left_open));
+            });
 
             // ui.horizontal(|ui| {
             //     ui.label("Toggle wireframe");

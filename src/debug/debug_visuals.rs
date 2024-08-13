@@ -58,11 +58,14 @@ fn spawn_help_text(mut commands: Commands) {
     commands.spawn((
         TextBundle::from_section(
             "",
-            TextStyle::default(),
+            TextStyle {
+                color: Color::BLACK,
+                ..Default::default()
+            },
         )
         .with_style(Style {
             position_type: PositionType::Absolute,
-            top: Val::Px(36.0),
+            top: Val::Px(40.0),
             left: Val::Px(12.0),
             ..default()
         }),
@@ -82,7 +85,7 @@ fn update_help_text(
 
     text.clear();
 
-    text.push_str("Press H for help");
+    text.push_str("Press (H) for help");
 
     if keys.just_pressed(KeyCode::KeyH) {
         helptextbool.0 = !helptextbool.0;
@@ -90,7 +93,9 @@ fn update_help_text(
 
     if helptextbool.0 {
         text.push_str(
-            "\n (WASD) to walk
+            "
+            \n (`) backquote to lock/unlock cursor
+            \n (WASD) to walk
             \n (space) to jump
             \n (C) to crouch
             \n (shift) to run
