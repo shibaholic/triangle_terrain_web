@@ -26,6 +26,8 @@ jobs:
       - name: Add wasm target
         run: |
           rustup target add wasm32-unknown-unknown
+      - name: Allow web sys unstable apis
+        run: export RUSTFLAGS=--cfg=web_sys_unstable_apis
       - name: Build Release
         run: |
           trunk build --release
