@@ -3,6 +3,9 @@ name: deploy-github-page
 on:
   workflow_dispatch:
 
+env:
+  RUSTFLAGS: --cfg=web_sys_unstable_apis
+
 permissions:
   contents: write
 
@@ -11,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: "rustflags check"
+        run: echo "rustflags check $RUSTFLAGS what"
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install rust toolchain
