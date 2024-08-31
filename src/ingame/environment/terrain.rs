@@ -236,7 +236,7 @@ fn create_chunk_data(
     return ChunkData {tricoord, xy_coord: chunk_coord, mesh: terrain_mesh };
 }
 
-const BOUND_FACTOR:f64 = 0.1;
+const BOUND_FACTOR:f64 = 0.05;
 const PIXEL_BOUND_UNIT:f64 = BOUND_FACTOR/33.0;
 fn generate_noise(chunk_tricoord: &TriCoord<i16>) -> NoiseMap {
     let xz = trichunk_to_coord(*chunk_tricoord, 0);

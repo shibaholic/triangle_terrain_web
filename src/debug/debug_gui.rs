@@ -160,9 +160,8 @@ fn right_panel(
 
             ui.horizontal(|ui| {
                 ui.label("Chunk generation radius");
-                ui.add(egui::Slider::new(&mut terrain_config.chunk_gen_radius, 0.0..=200.0));
+                ui.add(egui::Slider::new(&mut terrain_config.chunk_gen_radius, 0.0..=400.0));
             });
-
 
             ui.separator();
             ui.heading("Gizmos");
