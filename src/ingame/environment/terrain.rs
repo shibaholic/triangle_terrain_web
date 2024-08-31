@@ -236,16 +236,17 @@ fn create_chunk_data(
     return ChunkData {tricoord, xy_coord: chunk_coord, mesh: terrain_mesh };
 }
 
-const PIXEL_BOUND_UNIT:f64 = 1.0/33.0;
+const BOUND_FACTOR:f64 = 0.1;
+const PIXEL_BOUND_UNIT:f64 = BOUND_FACTOR/33.0;
 fn generate_noise(chunk_tricoord: &TriCoord<i16>) -> NoiseMap {
     let xz = trichunk_to_coord(*chunk_tricoord, 0);
     let halfsides = xz.x / CHUNK_HALFSIDE;
 
-    let lower_x = halfsides * PIXEL_BOUND_UNIT * 16.0;
-    let upper_x = lower_x + 1.0;
+    let lower_x = halfsides * 16.0 * PIXEL_BOUND_UNIT;
+    let upper_x = lower_x + BOUND_FACTOR;
     
     let upper_y = chunk_tricoord.b as f64 * 32.0 * PIXEL_BOUND_UNIT;
-    let lower_y = upper_y - 1.0; 
+    let lower_y = upper_y - BOUND_FACTOR; 
     
     println!("lower upper x: {},{}", lower_x, upper_x);
     println!("lower upper y: {},{}", lower_y, upper_y);
@@ -350,7 +351,7 @@ fn generate_mesh(
                 // if r + g + b > 20.0 {
                 //     g = 15.0;
                 // }
-                println!("rgb: {} {} {}", r, g, b);
+                // println!("rgb: {} {} {}", r, g, b);
                 [r, g, b, 1.]
                 // [5.0, 5.0, 0.0, 1.]
             } )
