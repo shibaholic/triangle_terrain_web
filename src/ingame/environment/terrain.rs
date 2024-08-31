@@ -362,7 +362,14 @@ fn generate_mesh(
     return mesh; 
 }
 
-const HEIGHT_AMPLIFIER:f32 = 5.0;
+const NOISE_MIN:f32 = 0.0;
+const NOISE_MAX:f32 = 1.0;
+const HEIGHT_MIN:f32 = 0.0;
+const HEIGHT_MAX:f32 = 100.0;
+fn map_noise_to_height(value: f32) -> f32 {
+    HEIGHT_MIN + (value - NOISE_MIN) * (HEIGHT_MAX - HEIGHT_MIN) / (NOISE_MAX - NOISE_MIN)
+}
+
 fn generate_vertices_3s(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
     let mut v:Vec<Vec3> = Vec::with_capacity(triangular_number_o1(CHUNK_SIDE) as usize * 3);
 
@@ -434,14 +441,14 @@ fn generate_vertices_3s(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
                 // left vertex
                 print_and_push(Vec3 {
                     x:x_base - TRI_HALFSIDE, 
-                    y:HEIGHT_AMPLIFIER * noise_grid[z_noise_base as usize][x_noise_base as usize] as f32, 
+                    y:map_noise_to_height(noise_grid[z_noise_base as usize][x_noise_base as usize] as f32), 
                     z:z_base - z_halfalt
                 });
 
                 // right vertex
                 print_and_push(Vec3 {
                     x:x_base + TRI_HALFSIDE, 
-                    y:HEIGHT_AMPLIFIER * noise_grid[z_noise_base as usize][(x_noise_base + 2) as usize] as f32, 
+                    y:map_noise_to_height(noise_grid[z_noise_base as usize][(x_noise_base + 2) as usize] as f32), 
                     z:z_base - z_halfalt
                 });
 
@@ -450,7 +457,7 @@ fn generate_vertices_3s(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
                 // altitude vertex
                 print_and_push(Vec3 {
                     x:x_base, 
-                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base + z_noise_augmenter) as usize][(x_noise_base + 1) as usize] as f32, 
+                    y:map_noise_to_height(noise_grid[(z_noise_base + z_noise_augmenter) as usize][(x_noise_base + 1) as usize] as f32), 
                     z:z_base + z_halfalt
                 });
             } else {
@@ -461,13 +468,13 @@ fn generate_vertices_3s(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
                 // altitude vertex
                 print_and_push(Vec3 {
                     x:x_base, 
-                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base) as usize][(x_noise_base + 1) as usize] as f32, 
+                    y:map_noise_to_height(noise_grid[(z_noise_base) as usize][(x_noise_base + 1) as usize] as f32), 
                     z:z_base - z_halfalt
                 });
                 // right vertex
                 print_and_push(Vec3 {
                     x:x_base + TRI_HALFSIDE, 
-                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base + z_noise_augmenter) as usize][(x_noise_base + 2) as usize] as f32, 
+                    y:map_noise_to_height(noise_grid[(z_noise_base + z_noise_augmenter) as usize][(x_noise_base + 2) as usize] as f32), 
                     z:z_base + z_halfalt
                 });
 
@@ -476,7 +483,7 @@ fn generate_vertices_3s(noise_map: &NoiseMap, odd:bool) -> Vec<Vec3> {
                 // left vertex
                 print_and_push(Vec3 {
                     x:x_base - TRI_HALFSIDE, 
-                    y:HEIGHT_AMPLIFIER * noise_grid[(z_noise_base + z_noise_augmenter) as usize][x_noise_base as usize] as f32, 
+                    y:map_noise_to_height(noise_grid[(z_noise_base + z_noise_augmenter) as usize][x_noise_base as usize] as f32), 
                     z:z_base + z_halfalt
                 });
             }
