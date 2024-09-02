@@ -250,6 +250,7 @@ fn receive_generated_chunks(
     mut materials: ResMut<Assets<StandardMaterial>>,
     environ_assets: Res<TerrainHandles>,
     mut commands: Commands,
+    selected_mat: Res<SelectedTerrainMat>
 ) {
     for tri_chunk in chunks.in_range.clone() {
         if chunk_tasks.chunk_generation_tasks.contains_key(&tri_chunk) || chunks.generated.contains(&tri_chunk) {
@@ -257,7 +258,7 @@ fn receive_generated_chunks(
         }
         let data = create_chunk_data(tri_chunk);
         let terrain_mesh = meshes.add(data.mesh);
-        spawn_terrain(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &mut materials, &mut commands);
+        spawn_terrain(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &selected_mat, &mut commands);
         chunks.generated.push(data.tricoord);
     }
 }
