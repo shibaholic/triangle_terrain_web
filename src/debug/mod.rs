@@ -1,12 +1,14 @@
 mod debug_visuals;
 mod debug_gui;
 mod debug_gizmo;
+mod debug_oneshots;
 
 use bevy::prelude::*;
 
 use debug_gui::DebugGUIPlugin;
 use debug_visuals::DebugVisualsPlugin;
 use debug_gizmo::DebugGizmoPlugin;
+use debug_oneshots::DebugOneShotsPlugin;
 
 pub struct DebugPlugin;
 
@@ -16,6 +18,7 @@ impl Plugin for DebugPlugin {
         .add_plugins(DebugVisualsPlugin)
         .add_plugins(DebugGUIPlugin)
         .add_plugins(DebugGizmoPlugin)
+        .add_plugins(DebugOneShotsPlugin)
         ;
 
     }

@@ -19,6 +19,8 @@ use bevy_fps_controller::controller::*;
 use ingame::{environment::EnvironmentPlugin};
 use debug::DebugPlugin;
 
+use bevy_shader_utils::ShaderUtilsPlugin;
+
 fn main() {
     App::new()
         .insert_resource(Msaa::Off)
@@ -41,6 +43,7 @@ fn main() {
                     ..default()
                 }),
         )
+        .add_plugins(ShaderUtilsPlugin)
         .add_plugins(DebugPlugin)
 
         .add_plugins(EnvironmentPlugin)

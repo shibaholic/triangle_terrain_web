@@ -3,10 +3,10 @@ use bevy_egui::{egui::{self, panel, FontId, RichText}, EguiContext, EguiContexts
 use bevy_fps_controller::controller::LogicalPlayer;
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 
-use crate::ingame::{environment::terrain::TerrainConfig, tricoord::{halfsides_altitude_to_tricoord, Coord, TriCoord, CHUNK_ALTITUDE, CHUNK_HALFSIDE, CHUNK_SIDE}};
+use crate::ingame::{environment::terrain::{TerrainHandles, TerrainConfig}, tricoord::{halfsides_altitude_to_tricoord, Coord, TriCoord, CHUNK_ALTITUDE, CHUNK_HALFSIDE, CHUNK_SIDE}};
 use crate::debug::debug_gizmo::GizmoConfig;
 
-use super::TriBool;
+use super::{debug_oneshots::OneShotSystems, TriBool};
 
 
 pub struct DebugGUIPlugin;
@@ -119,6 +119,9 @@ fn right_panel(
     tools_data: Res<DebugToolsData>,
     // mut wireframe_config: ResMut<WireframeConfig>,
     mut terrain_config: ResMut<TerrainConfig>,
+    mut terrain_hdls: ResMut<TerrainHandles>,
+    debug_oneshots: Res<OneShotSystems>,
+    mut commands: Commands,
     mut gizmo_config: ResMut<GizmoConfig>
 ) {
     if panel_config.hidden {
@@ -180,6 +183,19 @@ fn right_panel(
                 gizmo_config.chunks_gizmo = TriBool::from(chunk_gizmo_bool);
             });
 
+            ui.separator();
+            ui.heading("Terrain material");
+
+            egui::ComboBox::from_label("Pick a material")
+            .selected_text(terrain_hdls.selected_mat.clone())
+            .show_ui(ui, |ui| {
+                for (key, value) in terrain_hdls.mat_hdls.clone().iter() {
+                    if ui.selectable_value(&mut terrain_hdls.selected_mat, key.clone(), key).changed() {
+                        let id = debug_oneshots.0["change_terrain_material"];
+                        commands.run_system(id);
+                    }
+                }
+            });
 
             ui.separator();
             ui.heading("Inspector panel");

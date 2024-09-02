@@ -693,6 +693,7 @@ dependencies = [
  "bevy_egui",
  "bevy_fps_controller",
  "bevy_rapier3d",
+ "bevy_shader_utils",
  "embed-resource",
  "log",
  "noise",
@@ -1057,6 +1058,13 @@ dependencies = [
  "serde",
  "thiserror",
  "uuid",
+]
+
+[[package]]
+name = "bevy_shader_utils"
+version = "0.7.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

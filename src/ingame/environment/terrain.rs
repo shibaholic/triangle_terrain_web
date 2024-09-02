@@ -1,11 +1,10 @@
-use std::{collections::HashMap, thread, time::Duration};
+use std::{any::TypeId, collections::HashMap, thread, time::Duration};
 
-use bevy::{color::palettes::css::{BLACK, GREEN, RED, YELLOW}, prelude::*, render::{mesh::{Indices, PrimitiveTopology, VertexAttributeValues}, render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension, TextureFormat}, texture::{ImageSampler, ImageSamplerDescriptor}},};
+use bevy::{render::render_resource::{AsBindGroup, ShaderRef}, color::palettes::css::{BLACK, GREEN, RED, YELLOW}, pbr::{ExtendedMaterial, MaterialExtension}, prelude::*, render::{mesh::{Indices, PrimitiveTopology, VertexAttributeValues}, render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension, TextureFormat}, texture::{ImageSampler, ImageSamplerDescriptor}}};
 use bevy_fps_controller::controller::LogicalPlayer;
 use bevy_inspector_egui::{prelude::ReflectInspectorOptions, InspectorOptions};
 use bevy_rapier3d::prelude::{Collider, ComputedColliderShape, RigidBody};
 use noise::{core::worley::{distance_functions::euclidean, worley_2d, ReturnType}, permutationtable::PermutationTable, utils::{NoiseMap, NoiseMapBuilder, PlaneMapBuilder}, Blend, Checkerboard, Fbm, Perlin, RidgedMulti, Vector2};
-
 use bevy::tasks::futures_lite::future;
 use bevy::tasks::{block_on, AsyncComputeTaskPool, Task};
 
@@ -16,6 +15,7 @@ pub struct TerrainPlugin;
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         app
+        .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, MyMaterial>,>::default())
         .add_systems(Startup, setup_terrain_assets)
         .init_resource::<TerrainConfig>()
         .init_resource::<Chunks>()
@@ -62,29 +62,51 @@ fn chunks_near_player(
     chunks.in_range = in_radius_tricoords.clone();
 }
 
+#[derive(Asset, AsBindGroup, TypePath, Debug, Clone)]
+pub struct MyMaterial {}
+
+impl MaterialExtension for MyMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/animate_shader.wgsl".into()
+    }
+}
 
 #[derive(Resource)]
-struct TerrainAssetHandles {
-    terrain_material_hdls: HashMap<String, Handle<StandardMaterial>>,
-    terrain_mesh_hdls: HashMap<String, Handle<Mesh>>,
-    height_map_data_hdls: HashMap<Coord<i16>, UntypedHandle>,
-    height_map_material_hdls: HashMap<Coord<i16>, Handle<StandardMaterial>>
+pub struct TerrainHandles {
+    pub mat_hdls: HashMap<String, UntypedHandle>,
+    pub selected_mat: String,
+    mesh_hdls: HashMap<String, Handle<Mesh>>,
+    height_map_hdls: HashMap<Coord<i16>, UntypedHandle>
 }
 fn setup_terrain_assets(
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut standard_materials: ResMut<Assets<StandardMaterial>>,
+    mut mymat_materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, MyMaterial>>>,
     mut commands: Commands
 ) {
-    let material_handle_1 = materials.add(Color::srgb(0.1, 0.7, 0.1));
-    let material_handle_2 = materials.add(Color::srgb(0.7, 0.2, 0.2));
-    let material_grass = materials.add(StandardMaterial {
-        // base_color: Srgba::hex("#6dbe4b").unwrap().into(),
-        base_color: Color::srgb(0.5, 0.5, 0.5),
-        metallic: 1.0,
-        perceptual_roughness: 0.0,
-        reflectance: 1.0,
-        ..default()
+    let shiny_material = standard_materials.add(
+        StandardMaterial {
+            // base_color: Srgba::hex("#6dbe4b").unwrap().into(),
+            base_color: Color::srgb(0.5, 0.5, 0.5),
+            metallic: 1.0,
+            perceptual_roughness: 0.0,
+            reflectance: 1.0,
+            ..default()
     });
+
+    let my_material = mymat_materials.add(
+        ExtendedMaterial {
+            base: StandardMaterial {
+                // base_color: Srgba::hex("#6dbe4b").unwrap().into(),
+                base_color: Color::srgb(0.5, 0.5, 0.5),
+                metallic: 0.0,
+                perceptual_roughness: 1.0,
+                reflectance: 0.0,
+                ..default()
+            },
+            extension: MyMaterial {  }
+        }
+    );
 
     // let mut mesh = Plane3d::default().mesh().size(16., 16.).build();
 
@@ -100,14 +122,14 @@ fn setup_terrain_assets(
 
     // let mesh_handle = meshes.add(mesh);
 
-    let enviro_asset_handles = TerrainAssetHandles {
-        terrain_material_hdls: HashMap::from([("mat_1".into(), material_handle_1), ("mat_2".into(), material_handle_2), ("grass".into(), material_grass)]),
-        terrain_mesh_hdls: HashMap::from([/*("chunk_plane".into(), mesh_handle)*/]),
-        height_map_data_hdls: HashMap::new(),
-        height_map_material_hdls: HashMap::new()
+    let terrain_hdls = TerrainHandles {
+        mat_hdls: HashMap::from([("shiny".into(), shiny_material.untyped()), ("my_mat".into(), my_material.untyped())]),
+        selected_mat: "shiny".into(),
+        mesh_hdls: HashMap::from([/*("chunk_plane".into(), mesh_handle)*/]),
+        height_map_hdls: HashMap::new()
     };
 
-    commands.insert_resource(enviro_asset_handles);
+    commands.insert_resource(terrain_hdls);
 }
 
 
@@ -178,7 +200,7 @@ fn receive_generated_chunks(
 
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    environ_assets: Res<TerrainAssetHandles>,
+    environ_assets: Res<TerrainHandles>,
     mut commands: Commands,
 ) {
 
@@ -196,7 +218,7 @@ fn receive_generated_chunks(
             
             // convert the data into things that can be spawned
             let terrain_mesh = meshes.add(data.mesh);
-            spawn_entities(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &mut materials, &mut commands);
+            spawn_terrain(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &mut materials, &mut commands);
 
             chunks.generating.retain(|tricoord| *tricoord != data.tricoord);
             chunks.generated.push(data.tricoord);
@@ -213,7 +235,7 @@ fn receive_generated_chunks(
 
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    environ_assets: Res<TerrainAssetHandles>,
+    environ_assets: Res<TerrainHandles>,
     mut commands: Commands,
 ) {
     for tri_chunk in chunks.in_range.clone() {
@@ -222,7 +244,7 @@ fn receive_generated_chunks(
         }
         let data = create_chunk_data(tri_chunk);
         let terrain_mesh = meshes.add(data.mesh);
-        spawn_entities(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &mut materials, &mut commands);
+        spawn_terrain(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &mut materials, &mut commands);
         chunks.generated.push(data.tricoord);
     }
 }
@@ -548,11 +570,14 @@ fn generate_assignments(odd: bool) -> Vec<u16> {
     return v;
 }
 
-fn spawn_entities(
+#[derive(Component)]
+pub struct TerrainMesh {}
+
+fn spawn_terrain(
     chunk_coord: &Coord<f64>, 
     terrain_mesh: Handle<Mesh>,
     meshes: &Assets<Mesh>,
-    environ_assets: &TerrainAssetHandles,
+    environ_assets: &TerrainHandles,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     commands: &mut Commands
 ) {
@@ -571,12 +596,13 @@ fn spawn_entities(
     commands.spawn((
         PbrBundle {
             mesh: terrain_mesh.clone(),
-            material: environ_assets.terrain_material_hdls["grass"].clone(), // materials.add(Color::srgb(1., 1., 1.)) ,
+            material: environ_assets.mat_hdls["shiny"].clone().typed_unchecked(), // materials.add(Color::srgb(1., 1., 1.)) ,
             transform: chunk_transform,
             ..default()
         },
         terrain_collider,
         RigidBody::Fixed,
+        TerrainMesh {},
     ))
     .insert(Name::new("TerrainMesh"));
 }
