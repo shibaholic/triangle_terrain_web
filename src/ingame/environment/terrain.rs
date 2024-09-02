@@ -70,9 +70,13 @@ fn chunks_near_player(
 pub struct MyMaterial {}
 
 impl MaterialExtension for MyMaterial {
-    fn fragment_shader() -> ShaderRef {
+    fn vertex_shader() -> ShaderRef {
         "shaders/animate_shader.wgsl".into()
     }
+
+    // fn fragment_shader() -> ShaderRef {
+    //     "shaders/animate_shader.wgsl".into()
+    // }
 }
 
 #[derive(Reflect, Resource, InspectorOptions)]
@@ -107,7 +111,7 @@ fn setup_terrain_assets(
         ExtendedMaterial {
             base: StandardMaterial {
                 // base_color: Srgba::hex("#6dbe4b").unwrap().into(),
-                base_color: Color::srgb(0.5, 0.5, 0.5),
+                // base_color: Color::srgb(1.0, 1.0, 1.0),
                 metallic: 0.0,
                 perceptual_roughness: 1.0,
                 reflectance: 0.0,
@@ -606,7 +610,6 @@ fn spawn_terrain(
     // println!("shiny id: {:?}", environ_assets.mat_hdls["shiny"].clone().type_id());
 
     if selected_mat.selected_mat == "shiny" {
-        println!("spawn shiny");
         // spawn terrain
         commands.spawn((
             PbrBundle {
@@ -621,7 +624,6 @@ fn spawn_terrain(
         ))
         .insert(Name::new("TerrainMesh"));
     } else if selected_mat.selected_mat == "my_mat" {
-        println!("spawn my_mat");
             // spawn terrain
     commands.spawn((
         MaterialMeshBundle {
