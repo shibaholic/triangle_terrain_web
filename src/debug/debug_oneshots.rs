@@ -2,7 +2,7 @@ use std::any::TypeId;
 
 use bevy::{ecs::system::SystemId, pbr::ExtendedMaterial, prelude::*, utils::HashMap};
 
-use crate::ingame::environment::terrain::{MyMaterial, TerrainHandles, TerrainMesh};
+use crate::ingame::environment::terrain::{MyMaterial, SelectedTerrainMat, TerrainHandles, TerrainMesh};
 
 pub struct DebugOneShotsPlugin;
 
@@ -32,22 +32,23 @@ impl FromWorld for OneShotSystems {
 fn change_material(
     mut commands: Commands,
     terrain_hdls: Res<TerrainHandles>,
+    selected_mat: Res<SelectedTerrainMat>,
     mut query: Query<Entity, With<TerrainMesh>>,
 ) {
     for entity in query.iter_mut() {
         commands.entity(entity).remove::<Handle<StandardMaterial>>();
 
-        let mat_type = terrain_hdls.mat_hdls.get(&terrain_hdls.selected_mat).unwrap().type_id();
+        let mat_type = terrain_hdls.mat_hdls.get(&selected_mat.selected_mat).unwrap().type_id();
         if mat_type == TypeId::of::<StandardMaterial>() {
             // standard material
             commands.entity(entity).insert(
-                terrain_hdls.mat_hdls.get(&terrain_hdls.selected_mat).unwrap().clone()
+                terrain_hdls.mat_hdls.get(&selected_mat.selected_mat).unwrap().clone()
                 .typed::<StandardMaterial>()
             );
         } else if mat_type == TypeId::of::<ExtendedMaterial<StandardMaterial, MyMaterial>>() {
             // MyMaterial
             commands.entity(entity).insert(
-                terrain_hdls.mat_hdls.get(&terrain_hdls.selected_mat).unwrap().clone()
+                terrain_hdls.mat_hdls.get(&selected_mat.selected_mat).unwrap().clone()
                 .typed::<ExtendedMaterial<StandardMaterial, MyMaterial>>()
             );
         }

@@ -17,17 +17,21 @@ impl Plugin for TerrainPlugin {
         app
         .add_plugins(MaterialPlugin::<ExtendedMaterial<StandardMaterial, MyMaterial>,>::default())
         .add_systems(Startup, setup_terrain_assets)
+        .insert_resource(SelectedTerrainMat {
+            selected_mat: "my_mat".into()
+        })
+        .register_type::<SelectedTerrainMat>()
         .init_resource::<TerrainConfig>()
         .init_resource::<Chunks>()
         .register_type::<Chunks>()
         .init_resource::<ChunkTasks>()
         .add_systems(Update, chunks_near_player)
-        .add_systems(Update, (begin_generating_chunks, receive_generated_chunks).run_if(run_if_active) )
+        .add_systems(Update, (begin_generating_chunks, receive_generated_chunks).run_if(run_if_terrain_active) )
         ;
     }
 }
 
-fn run_if_active(terrain_config: Res<TerrainConfig>) -> bool {
+fn run_if_terrain_active(terrain_config: Res<TerrainConfig>) -> bool {
     terrain_config.active
 }
 
@@ -71,10 +75,15 @@ impl MaterialExtension for MyMaterial {
     }
 }
 
+#[derive(Reflect, Resource, InspectorOptions)]
+#[reflect(Resource, InspectorOptions)]
+pub struct SelectedTerrainMat {
+    pub selected_mat: String
+}
+
 #[derive(Resource)]
 pub struct TerrainHandles {
     pub mat_hdls: HashMap<String, UntypedHandle>,
-    pub selected_mat: String,
     mesh_hdls: HashMap<String, Handle<Mesh>>,
     height_map_hdls: HashMap<Coord<i16>, UntypedHandle>
 }
@@ -124,7 +133,6 @@ fn setup_terrain_assets(
 
     let terrain_hdls = TerrainHandles {
         mat_hdls: HashMap::from([("shiny".into(), shiny_material.untyped()), ("my_mat".into(), my_material.untyped())]),
-        selected_mat: "shiny".into(),
         mesh_hdls: HashMap::from([/*("chunk_plane".into(), mesh_handle)*/]),
         height_map_hdls: HashMap::new()
     };
@@ -202,6 +210,7 @@ fn receive_generated_chunks(
     mut materials: ResMut<Assets<StandardMaterial>>,
     environ_assets: Res<TerrainHandles>,
     mut commands: Commands,
+    selected_mat: Res<SelectedTerrainMat>
 ) {
 
     // retain keeps the key value pair if true
@@ -218,7 +227,7 @@ fn receive_generated_chunks(
             
             // convert the data into things that can be spawned
             let terrain_mesh = meshes.add(data.mesh);
-            spawn_terrain(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &mut materials, &mut commands);
+            spawn_terrain(&data.xy_coord, terrain_mesh, &meshes, &environ_assets, &selected_mat, &mut commands, );
 
             chunks.generating.retain(|tricoord| *tricoord != data.tricoord);
             chunks.generated.push(data.tricoord);
@@ -578,7 +587,7 @@ fn spawn_terrain(
     terrain_mesh: Handle<Mesh>,
     meshes: &Assets<Mesh>,
     environ_assets: &TerrainHandles,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
+    selected_mat: &SelectedTerrainMat,
     commands: &mut Commands
 ) {
     let middle_x = chunk_coord.x;
@@ -592,11 +601,32 @@ fn spawn_terrain(
     // terrain collider
     let terrain_collider = Collider::from_bevy_mesh(meshes.get(&terrain_mesh).unwrap(), &ComputedColliderShape::TriMesh).unwrap();
 
-    // spawn terrain
+    // println!("selected mat: {}", selected_mat.selected_mat);
+    // println!("selected id: {:?}", environ_assets.mat_hdls[&selected_mat.selected_mat].clone().type_id());
+    // println!("shiny id: {:?}", environ_assets.mat_hdls["shiny"].clone().type_id());
+
+    if selected_mat.selected_mat == "shiny" {
+        println!("spawn shiny");
+        // spawn terrain
+        commands.spawn((
+            PbrBundle {
+                mesh: terrain_mesh.clone(),
+                material: environ_assets.mat_hdls["shiny"].clone().typed_unchecked(), // materials.add(Color::srgb(1., 1., 1.)) ,
+                transform: chunk_transform,
+                ..default()
+            },
+            terrain_collider,
+            RigidBody::Fixed,
+            TerrainMesh {},
+        ))
+        .insert(Name::new("TerrainMesh"));
+    } else if selected_mat.selected_mat == "my_mat" {
+        println!("spawn my_mat");
+            // spawn terrain
     commands.spawn((
-        PbrBundle {
+        MaterialMeshBundle {
             mesh: terrain_mesh.clone(),
-            material: environ_assets.mat_hdls["shiny"].clone().typed_unchecked(), // materials.add(Color::srgb(1., 1., 1.)) ,
+            material: environ_assets.mat_hdls.get("my_mat").unwrap().clone().typed::<ExtendedMaterial<StandardMaterial, MyMaterial>>(), // materials.add(Color::srgb(1., 1., 1.)) ,
             transform: chunk_transform,
             ..default()
         },
@@ -605,4 +635,7 @@ fn spawn_terrain(
         TerrainMesh {},
     ))
     .insert(Name::new("TerrainMesh"));
+    }
+
+
 }
